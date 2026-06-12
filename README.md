@@ -6,8 +6,8 @@ A Machine Learning-based web application that predicts house prices based on var
 ---
 
 ## 🚀 Live Demo
-*(Optional: Add later when you deploy it)*  
-👉 https://your-deployment-link.com
+
+👉 (https://sct-ml-01-4hoy.onrender.com/)
 
 ---
 
