@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart House Price Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <nav>
+        <div class="logo">
+            🏠 House Price Predictor
+        </div>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/analytics">Analytics</a></li>
+            <li><a href="/about">About</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-banner">
+            <h1>Smart House Price Prediction</h1>
+            <p>Estimate your property's market value using Machine Learning.</p>
+        </div>
+
+        <div class="stats">
+
+<div class="stat">
+<h2>545+</h2>
+<p>Properties</p>
+</div>
+
+<div class="stat">
+<h2>12</h2>
+<p>Features</p>
+</div>
+
+<div class="stat">
+<h2>ML</h2>
+<p>Linear Regression</p>
+</div>
+
+<div class="stat">
+<h2>AI</h2>
+<p>Prediction</p>
+</div>
+
+<div class="stat">
+<h2>{{ r2 }}</h2>
+<p>R² Score</p>
+</div>
+
+<div class="stat">
+<h2>{{ mae }}</h2>
+<p>MAE</p>
+</div>
+
+</div>
+
+        <div class="form-container">
+            <div class="info-card">
+                <h2>Find Your Dream Home</h2>
+                <p>Get an instant house price prediction using Machine Learning.</p>
+                <h3>Features</h3>
+                <ul>
+                    <li>✔ Smart Price Prediction</li>
+                    <li>✔ 12 Property Features</li>
+                    <li>✔ Interactive Dashboard</li>
+                    <li>✔ Real Estate Analytics</li>
+                    <li>✔ ML Powered Estimation</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <form action="/predict" method="POST">
+                    <h2>Property Details</h2>
+
+                    <label>Area (Square Feet)</label>
+                    <input type="number" name="area" placeholder="Enter Area" required>
+
+                    <label>Bedrooms</label>
+                    <select name="bedrooms">
+                        <option value="1">1 Bedroom</option>
+                        <option value="2">2 Bedrooms</option>
+                        <option value="3">3 Bedrooms</option>
+                        <option value="4">4 Bedrooms</option>
+                        <option value="5">5 Bedrooms</option>
+                        <option value="6">6 Bedrooms</option>
+                    </select>
+
+                    <label>Bathrooms</label>
+                    <select name="bathrooms">
+                        <option value="1">1 Bathroom</option>
+                        <option value="2">2 Bathrooms</option>
+                        <option value="3">3 Bathrooms</option>
+                        <option value="4">4 Bathrooms</option>
+                    </select>
+
+                    <label>Stories</label>
+                    <select name="stories">
+                        <option value="1">1 Floor</option>
+                        <option value="2">2 Floors</option>
+                        <option value="3">3 Floors</option>
+                        <option value="4">4 Floors</option>
+                    </select>
+
+                    <label>Main Road Access</label>
+                    <select name="mainroad">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+
+                    <label>Guest Room</label>
+                    <select name="guestroom">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+
+                    <label>Basement</label>
+                    <select name="basement">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+
+                    <label>Hot Water Heating</label>
+                    <select name="hotwaterheating">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+
+                    <label>Air Conditioning</label>
+                    <select name="airconditioning">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+
+                    <label>Parking Spaces</label>
+                    <input type="number" name="parking" placeholder="Parking Spaces" required>
+
+                    <label>Preferred Area</label>
+                    <select name="prefarea">
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+
+                    <label>Furnishing Status</label>
+                    <select name="furnishingstatus">
+                        <option value="0">Fully Furnished</option>
+                        <option value="1">Semi Furnished</option>
+                        <option value="2">Unfurnished</option>
+                    </select>
+
+                    <button type="submit">Predict House Price</button>
+                </form>
+
+                {% if prediction %}
+                <div class="result">
+                    <h2>🏠 Estimated House Price</h2>
+
+<h1>
+₹ {{ "{:,.0f}".format(prediction|float) }}
+</h1>
+
+<p>
+Model R² Score : {{ r2 }}
+</p>
+
+<p>
+Machine Learning Estimated Market Value
+</p>
+                    {% if prediction < 3000000 %}
+                        <h3>🏡 Affordable House</h3>
+                    {% elif prediction < 6000000 %}
+                        <h3>🏠 Mid Range House</h3>
+                    {% elif prediction < 9000000 %}
+                        <h3>🏘 Premium House</h3>
+                    {% else %}
+                        <h3>🏛 Luxury House</h3>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <footer>
+
+<p>
+
+© 2026 Smart House Price Prediction | Developed by Rashmi Deepak Toragallamath
+
+</p>
+
+</footer>
+</body>
+</html>
