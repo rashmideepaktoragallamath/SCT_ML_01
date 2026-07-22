@@ -86,7 +86,7 @@ House-Price-Prediction/
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/house-price-prediction.git
+git clone https://github.com/rashmideepaktoragallamath/SCT_ML_01.git
 2. Move into the folder
 cd house-price-prediction
 3. Install dependencies
