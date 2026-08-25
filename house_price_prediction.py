@@ -1,9 +1,14 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import joblib
+
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
 
 # --------------------------
 # LOAD DATASET
@@ -11,17 +16,21 @@ from sklearn.metrics import mean_absolute_error, r2_score
 
 data = pd.read_csv("Housing (3).csv")
 
-print("\nFirst 5 Rows:\n")
-print(data.head())
+print("\nDataset Shape:")
+print(data.shape)
 
-print("\nDataset Info:\n")
-print(data.info())
 
 # --------------------------
-# ENCODE CATEGORICAL COLUMNS
+# FEATURES AND TARGET
 # --------------------------
 
-encoder = LabelEncoder()
+X = data.drop("price", axis=1)
+y = data["price"]
+
+
+# --------------------------
+# COLUMN TYPES
+# --------------------------
 
 categorical_columns = [
     "mainroad",
@@ -33,15 +42,49 @@ categorical_columns = [
     "furnishingstatus"
 ]
 
-for col in categorical_columns:
-    data[col] = encoder.fit_transform(data[col])
 
 # --------------------------
-# FEATURES AND TARGET
+# PREPROCESSING
 # --------------------------
 
-X = data.drop("price", axis=1)
-y = data["price"]
+preprocessor = ColumnTransformer(
+    transformers=[
+        (
+            "categorical",
+            OneHotEncoder(
+                handle_unknown="ignore",
+                drop="first"
+            ),
+            categorical_columns
+        )
+    ],
+    remainder="passthrough"
+)
+
+
+# --------------------------
+# BEST MODEL
+# --------------------------
+
+regressor = GradientBoostingRegressor(
+    n_estimators=200,
+    learning_rate=0.05,
+    max_depth=3,
+    random_state=42
+)
+
+
+# --------------------------
+# COMPLETE PIPELINE
+# --------------------------
+
+model = Pipeline(
+    steps=[
+        ("preprocessor", preprocessor),
+        ("regressor", regressor)
+    ]
+)
+
 
 # --------------------------
 # TRAIN TEST SPLIT
@@ -54,129 +97,58 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
+
 # --------------------------
 # TRAIN MODEL
 # --------------------------
 
-model = LinearRegression()
+print("\nTraining final PropVision AI model...")
 
 model.fit(X_train, y_train)
 
+
 # --------------------------
-# PREDICTIONS
+# TEST MODEL
 # --------------------------
 
 y_pred = model.predict(X_test)
 
-# --------------------------
-# MODEL PERFORMANCE
-# --------------------------
+r2 = r2_score(y_test, y_pred)
 
-print("\nR2 Score:")
-print(r2_score(y_test, y_pred))
-
-print("\nMean Absolute Error:")
-print(mean_absolute_error(y_test, y_pred))
-
-# --------------------------
-# GRAPH 1
-# AREA VS PRICE
-# --------------------------
-
-plt.figure(figsize=(8,5))
-
-plt.scatter(
-    data["area"],
-    data["price"]
-)
-
-plt.xlabel("Area")
-
-plt.ylabel("Price")
-
-plt.title("Area vs Price")
-
-plt.savefig("static/graphs/area_price.png")
-plt.close()
-
-# --------------------------
-# GRAPH 2
-# BEDROOMS VS PRICE
-# --------------------------
-
-plt.figure(figsize=(8,5))
-
-bed_price = data.groupby("bedrooms")["price"].mean()
-
-bed_price.plot(kind="bar")
-
-plt.title("Average Price by Bedrooms")
-
-plt.xlabel("Bedrooms")
-
-plt.ylabel("Average Price")
-
-plt.savefig("static/graphs/area_price.png")
-plt.close()
-
-# --------------------------
-# GRAPH 3
-# BATHROOMS VS PRICE
-# --------------------------
-
-plt.figure(figsize=(8,5))
-
-bath_price = data.groupby("bathrooms")["price"].mean()
-
-bath_price.plot(kind="bar")
-
-plt.title("Average Price by Bathrooms")
-
-plt.xlabel("Bathrooms")
-
-plt.ylabel("Average Price")
-
-plt.savefig("static/graphs/area_price.png")
-plt.close()
-# --------------------------
-# GRAPH 4
-# PARKING VS PRICE
-# --------------------------
-
-plt.figure(figsize=(8,5))
-
-parking_price = data.groupby("parking")["price"].mean()
-
-parking_price.plot(kind="bar")
-
-plt.title("Parking vs Average Price")
-
-plt.xlabel("Parking")
-
-plt.ylabel("Average Price")
-
-plt.savefig("static/graphs/area_price.png")
-plt.close()
-
-# --------------------------
-# GRAPH 5
-# ACTUAL VS PREDICTED
-# --------------------------
-
-plt.figure(figsize=(8,5))
-
-plt.scatter(
+mae = mean_absolute_error(
     y_test,
     y_pred
 )
 
-plt.xlabel("Actual Price")
+rmse = np.sqrt(
+    mean_squared_error(
+        y_test,
+        y_pred
+    )
+)
 
-plt.ylabel("Predicted Price")
 
-plt.title("Actual vs Predicted")
+# --------------------------
+# DISPLAY PERFORMANCE
+# --------------------------
 
-plt.savefig("static/graphs/area_price.png")
-plt.close()
+print("\nFinal PropVision AI Model")
+print("=" * 50)
 
-print("\nProject Step 1 Completed Successfully!")
+print(f"R2 Score: {r2:.4f}")
+print(f"Mean Absolute Error: {mae:,.2f}")
+print(f"RMSE: {rmse:,.2f}")
+
+
+# --------------------------
+# SAVE MODEL
+# --------------------------
+
+model_path = "model/propvision_model.pkl"
+
+joblib.dump(model, model_path)
+
+print("\nModel saved successfully!")
+print(f"Location: {model_path}")
+
+print("\nPhase 1 - Step 5 Completed Successfully!")
