@@ -1,135 +1,180 @@
-from flask import Flask, render_template, request
+import streamlit as st
 import pandas as pd
+import joblib
 
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import r2_score, mean_absolute_error
 
-app = Flask(__name__)
+# --------------------------
+# PAGE CONFIGURATION
+# --------------------------
 
-# Load Dataset
-data = pd.read_csv("Housing (3).csv")
-
-# Encode Categorical Columns
-categorical = [
-    "mainroad",
-    "guestroom",
-    "basement",
-    "hotwaterheating",
-    "airconditioning",
-    "prefarea",
-    "furnishingstatus"
-]
-
-encoder = LabelEncoder()
-
-for col in categorical:
-    data[col] = encoder.fit_transform(data[col])
-
-# Features and Target
-
-X = data.drop("price", axis=1)
-y = data["price"]
-
-# Train Test Split
-
-X_train, X_test, y_train, y_test = train_test_split(
-    X,
-    y,
-    test_size=0.20,
-    random_state=42
+st.set_page_config(
+    page_title="PropVision AI",
+    page_icon="🏠",
+    layout="wide"
 )
 
-# Train Model
 
-model = LinearRegression()
+# --------------------------
+# LOAD MODEL
+# --------------------------
 
-model.fit(
-    X_train,
-    y_train
+model = joblib.load("model/propvision_model.pkl")
+
+
+# --------------------------
+# TITLE
+# --------------------------
+
+st.title("🏠 PropVision AI")
+
+st.subheader(
+    "AI-Powered Property Valuation & Decision Support"
 )
 
-# Model Evaluation
-
-y_pred = model.predict(X_test)
-
-r2 = round(
-    r2_score(
-        y_test,
-        y_pred
-    ),
-    3
+st.write(
+    "Enter the property details below to estimate its market value."
 )
 
-mae = round(
-    mean_absolute_error(
-        y_test,
-        y_pred
-    ),
-    2
-)
 
-# Home Page
+# --------------------------
+# PROPERTY DETAILS
+# --------------------------
 
-@app.route("/")
-def home():
+st.header("Property Details")
 
-    return render_template(
-        "index.html",
-        r2=r2,
-        mae=mae
+
+col1, col2, col3 = st.columns(3)
+
+
+with col1:
+
+    area = st.number_input(
+        "Area (sq ft)",
+        min_value=300,
+        max_value=50000,
+        value=5000,
+        step=100
     )
 
-# Prediction
-
-@app.route("/predict", methods=["POST"])
-def predict():
-
-    values = []
-
-    for col in X.columns:
-        values.append(
-            float(
-                request.form[col]
-            )
-        )
-
-    prediction = model.predict([values])
-
-    return render_template(
-        "index.html",
-        prediction=round(
-            prediction[0],
-            2
-        ),
-        r2=r2,
-        mae=mae
+    bedrooms = st.number_input(
+        "Bedrooms",
+        min_value=1,
+        max_value=10,
+        value=3
     )
 
-# Analytics Page
-
-@app.route("/analytics")
-def analytics():
-
-    return render_template(
-        "analytics.html",
-        r2=r2,
-        mae=mae
+    bathrooms = st.number_input(
+        "Bathrooms",
+        min_value=1,
+        max_value=10,
+        value=2
     )
 
-# About Page
-
-@app.route("/about")
-def about():
-
-    return render_template(
-        "about.html",
-        r2=r2,
-        mae=mae
+    stories = st.number_input(
+        "Stories",
+        min_value=1,
+        max_value=10,
+        value=2
     )
 
-# Run App
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+with col2:
+
+    parking = st.number_input(
+        "Parking Spaces",
+        min_value=0,
+        max_value=10,
+        value=2
+    )
+
+    mainroad = st.selectbox(
+        "Main Road",
+        ["yes", "no"]
+    )
+
+    guestroom = st.selectbox(
+        "Guest Room",
+        ["yes", "no"]
+    )
+
+    basement = st.selectbox(
+        "Basement",
+        ["yes", "no"]
+    )
+
+
+with col3:
+
+    hotwaterheating = st.selectbox(
+        "Hot Water Heating",
+        ["yes", "no"]
+    )
+
+    airconditioning = st.selectbox(
+        "Air Conditioning",
+        ["yes", "no"]
+    )
+
+    prefarea = st.selectbox(
+        "Preferred Area",
+        ["yes", "no"]
+    )
+
+    furnishingstatus = st.selectbox(
+        "Furnishing Status",
+        [
+            "furnished",
+            "semi-furnished",
+            "unfurnished"
+        ]
+    )
+
+
+# --------------------------
+# PREDICTION BUTTON
+# --------------------------
+
+st.divider()
+
+if st.button(
+    "🔮 Predict Property Value",
+    use_container_width=True
+):
+
+    property_data = pd.DataFrame([{
+        "area": area,
+        "bedrooms": bedrooms,
+        "bathrooms": bathrooms,
+        "stories": stories,
+        "mainroad": mainroad,
+        "guestroom": guestroom,
+        "basement": basement,
+        "hotwaterheating": hotwaterheating,
+        "airconditioning": airconditioning,
+        "parking": parking,
+        "prefarea": prefarea,
+        "furnishingstatus": furnishingstatus
+    }])
+
+
+    predicted_price = model.predict(
+        property_data
+    )[0]
+
+
+    # --------------------------
+    # DISPLAY RESULT
+    # --------------------------
+
+    st.success("Property valuation generated successfully!")
+
+    st.metric(
+        "Estimated Property Value",
+        f"₹{predicted_price:,.0f}"
+    )
+
+
+    st.info(
+        "This estimate is generated using the trained "
+        "PropVision AI Gradient Boosting model."
+    )
